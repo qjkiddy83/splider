@@ -45,45 +45,10 @@ function fetchMain(callback) {
             rqs.push(fetchCatalog(item.href));
         })
         return Promise.all(rqs)
-    }).then(function (res) {//爬取文章
-        res.forEach(function (item, i) {
-            books[i].catalog = item;
-        })
-        let rqs = [];
-        books.forEach(function (book, i) {
-            rqs.push(createDoc(book))
-        })
-        return Promise.all(rqs);
-        // createDoc(books[0]);
     }).then(function(res){
-        callback(res);
+        callback(books);
     }).catch(function (e) {
         callback(e)
-    })
-}
-
-function createDoc(book) {
-    return new Promise(function(resolve,reject){
-        let bookDoc = {
-            name : book.name,
-            catalog:book.catalog
-        };
-        let rqs = [];
-        book.catalog.forEach(function (cata) {
-            rqs.push(fetchText(cata.href));
-        })
-        Promise.all(rqs).then(function (res) {
-            res.forEach(function(txt,i){
-                bookDoc.catalog[i].txt = txt;
-            })
-        }).then(function () {
-            return writeFile(`./logs/${book.name}.json`, bookDoc)
-        }).then(function (path) {
-            console.log(path)
-            resolve(path)
-        }).catch(function(err){
-            reject(err);
-        })
     })
 }
 
@@ -107,35 +72,7 @@ function fetchCatalog(href) {
 
 }
 
-function fetchText(href) {
-    return new Promise(function (resolve, reject) {
-        // console.log(href)
-        requestFunc(`${root}${href}`).then(function (res) {
-            var $ = cheerio.load(res, { decodeEntities: false });
-            var all = $('#box').find('p'),arr = [];
-            all.each(function(i){
-                // console.log($(this).text())
-                arr.push($(this).text());
-            })
-            // console.log(all.eq(0).text())
-            resolve(arr.join('\n'));
-        }).catch(function (err) {
-            reject(err)
-        })
-    })
-}
 
-function writeFile(path, data) {
-    return new Promise(function (resolve, reject) {
-        let _data = typeof data === "string" ? data : JSON.stringify(data);
-        fs.writeFile(path, _data, function (err) {
-            if (err) {
-                reject(err)
-            }
-            resolve(path)
-        });
-    })
-}
 module.exports = function (callback) {
     fetchMain(callback)
 };

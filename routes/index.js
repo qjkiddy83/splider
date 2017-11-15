@@ -1,11 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var jinyong = require('../models/jinyong');
+var book = require('../models/book');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  jinyong();
-  res.render('index', { title: 'Express' });
+router.get('/', function (req, res, next) {
+  book(function (data) {
+    res.send('index', { books: data });
+  });
 });
 
 module.exports = router;
