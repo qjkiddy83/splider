@@ -21,26 +21,21 @@ function requestFunc(url, callback) {
     })
 }
 
-function fetchCatalog(_href) {
-    let href = decodeURIComponent(_href);
+function fetchText(href) {
     return new Promise(function (resolve, reject) {
         requestFunc(`${root}${href}`).then(function (res) {
             var $ = cheerio.load(res, { decodeEntities: false });
-            let list = []
-            $('.mlist li').each(function (j) {
-                list.push({
-                    name: $(this).text(),
-                    href: $(this).find('a').attr('href')
-                })
+            var all = $('#box').find('p'),arr = [];
+            all.each(function(i){
+                // console.log($(this).text())
+                arr.push($(this).text());
             })
-            resolve(list);
-            // console.log(JSON.stringify(books))
+            // console.log(all.eq(0).text())
+            resolve(arr.join('/n'));
         }).catch(function (err) {
             reject(err)
         })
     })
-
 }
 
-
-module.exports = fetchCatalog;
+module.exports = fetchText;

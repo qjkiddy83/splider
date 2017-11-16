@@ -42,7 +42,7 @@ function fetchMain(callback) {
     }).then(function(res){
         callback(books);
     }).catch(function (e) {
-        callback(e)
+        console.error(e)
     })
 }
 
