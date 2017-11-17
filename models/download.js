@@ -21,46 +21,46 @@ function requestFunc(url, callback) {
     })
 }
 
-function fetchMain(callback) {
-    requestFunc(`${root}/book/`).then(function (res) {
-        var $ = cheerio.load(res, { decodeEntities: false });
-        $('.booklist .list').eq(0).find('li').each(function (i) {
-            let title_el = $(this).find('.title a'),
-                href = title_el.attr('href'),
-                name = title_el.text(),
-                info = $(this).find('.info').html().split('<br>')[0],
-                img = $(this).find('.img img').attr('src');
+// function fetchMain(callback) {
+//     requestFunc(`${root}/book/`).then(function (res) {
+//         var $ = cheerio.load(res, { decodeEntities: false });
+//         $('.booklist .list').eq(0).find('li').each(function (i) {
+//             let title_el = $(this).find('.title a'),
+//                 href = title_el.attr('href'),
+//                 name = title_el.text(),
+//                 info = $(this).find('.info').html().split('<br>')[0],
+//                 img = $(this).find('.img img').attr('src');
 
-            let novel = {
-                name,
-                info,
-                img,
-                href
-            }
-            books.push(novel);
-        });
-    }).then(function () {//爬取目录
-        let rqs = [];
-        books.forEach(function (item) {
-            rqs.push(fetchCatalog(item.href));
-        })
-        return Promise.all(rqs)
-    }).then(function (res) {//爬取文章
-        res.forEach(function (item, i) {
-            books[i].catalog = item;
-        })
-        let rqs = [];
-        books.forEach(function (book, i) {
-            rqs.push(createDoc(book))
-        })
-        return Promise.all(rqs);
-        // createDoc(books[0]);
-    }).then(function(res){
-        callback(res);
-    }).catch(function (e) {
-        callback(e)
-    })
-}
+//             let novel = {
+//                 name,
+//                 info,
+//                 img,
+//                 href
+//             }
+//             books.push(novel);
+//         });
+//     }).then(function () {//爬取目录
+//         let rqs = [];
+//         books.forEach(function (item) {
+//             rqs.push(fetchCatalog(item.href));
+//         })
+//         return Promise.all(rqs)
+//     }).then(function (res) {//爬取文章
+//         res.forEach(function (item, i) {
+//             books[i].catalog = item;
+//         })
+//         let rqs = [];
+//         books.forEach(function (book, i) {
+//             rqs.push(createDoc(book))
+//         })
+//         return Promise.all(rqs);
+//         // createDoc(books[0]);
+//     }).then(function(res){
+//         callback(res);
+//     }).catch(function (e) {
+//         callback(e)
+//     })
+// }
 
 function createDoc(book) {
     return new Promise(function(resolve,reject){
@@ -77,9 +77,8 @@ function createDoc(book) {
                 bookDoc.catalog[i].txt = txt;
             })
         }).then(function () {
-            return writeFile(`./docs/${book.name}.json`, bookDoc)
+            return writeFile(`./public/docs/${book.name}.txt`, bookDoc)
         }).then(function (path) {
-            console.log(path)
             resolve(path)
         }).catch(function(err){
             reject(err);
@@ -88,18 +87,33 @@ function createDoc(book) {
 }
 
 function fetchCatalog(href) {
+    var book = {
+        name : "飞狐外传小说",
+        catalog:[]
+    };
     return new Promise(function (resolve, reject) {
         requestFunc(`${root}${href}`).then(function (res) {
             var $ = cheerio.load(res, { decodeEntities: false });
-            let list = []
             $('.mlist li').each(function (j) {
-                list.push({
+                book.catalog.push({
                     name: $(this).text(),
                     href: $(this).find('a').attr('href')
                 })
             })
-            resolve(list);
-            // console.log(JSON.stringify(books))
+            return book.catalog;
+        }).then(function(res){
+            let rqs = [];
+            res.forEach(function (item, i) {
+                rqs.push(fetchText(item.href));
+            })
+            return Promise.all(rqs);
+        }).then(function(res){
+            res.forEach(function(item,i){
+                book.catalog[i].text = item;
+            })
+            return writeFile(`./public/docs/${book.name}.txt`, book)
+        }).then(function(doc){
+            resolve(doc);
         }).catch(function (err) {
             reject(err)
         })
@@ -107,18 +121,19 @@ function fetchCatalog(href) {
 
 }
 
-function fetchText(href) {
+function fetchText(_href) {
+    let href = decodeURIComponent(_href);
     return new Promise(function (resolve, reject) {
-        // console.log(href)
         requestFunc(`${root}${href}`).then(function (res) {
             var $ = cheerio.load(res, { decodeEntities: false });
             var all = $('#box').find('p'),arr = [];
             all.each(function(i){
-                // console.log($(this).text())
                 arr.push($(this).text());
             })
-            // console.log(all.eq(0).text())
-            resolve(arr.join('\n'));
+            // writeFile(`./docs/aaa.txt`, arr.join('\n'));
+            return arr.join('\n');
+        }).then(function(path){
+            resolve(path)
         }).catch(function (err) {
             reject(err)
         })
@@ -136,6 +151,11 @@ function writeFile(path, data) {
         });
     })
 }
-module.exports = function (callback) {
-    fetchMain(callback)
+
+module.exports = function (path,type) {
+    if(type == "article"){
+        return fetchText(path)
+    }else{
+        return fetchCatalog(path);
+    }
 };

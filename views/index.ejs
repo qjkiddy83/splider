@@ -6,7 +6,7 @@
   </head>
   <body>
     <% books.forEach(function(book){ %>
-    <p><a href="/book?path=<%= encodeURIComponent(book.href) %>"><%= book.name %></a></p>
+    <p><a href="/book?path=<%= encodeURIComponent(book.href) %>"><%= book.name %></a><a target="_blank" href="/book/download?path=<%= encodeURIComponent(book.href) %>&name=<%= book.name %>">下载</a></p>
     <%})%>
   </body>
 </html>
