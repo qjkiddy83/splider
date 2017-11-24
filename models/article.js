@@ -21,17 +21,18 @@ function requestFunc(url, callback) {
     })
 }
 
-function fetchText(href) {
+function fetchText(_href) {
+    let href = decodeURIComponent(_href);
     return new Promise(function (resolve, reject) {
         requestFunc(`${root}${href}`).then(function (res) {
             var $ = cheerio.load(res, { decodeEntities: false });
-            var all = $('#box').find('p'),arr = [];
-            all.each(function(i){
-                // console.log($(this).text())
+            var all = $('#box').find('p'), arr = [];
+            all.each(function (i) {
                 arr.push($(this).text());
             })
-            // console.log(all.eq(0).text())
-            resolve(arr.join('/n'));
+            return arr.join('\n');
+        }).then(function (path) {
+            resolve(path)
         }).catch(function (err) {
             reject(err)
         })

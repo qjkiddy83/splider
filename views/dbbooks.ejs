@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <link rel='stylesheet' href='/bootstrap/css/bootstrap.min.css' />
+  </head>
+  <body>
+    <% books.forEach(function(book){ if(book.catalog){%>
+    <details>
+        <summary><%= book.name %></summary>
+         <% book.catalog && book.catalog.forEach(function(catalog){ %>
+            <details>
+            <summary><%= catalog.name%></summary>
+            <p><%= catalog.text%></p>
+            </details>
+         <%})%>
+    </details>
+    <%}})%>
+    <script src="/javascripts/jquery.min.js" ></script>
+    <script src="/bootstrap/js/bootstrap.min.js" ></script>
+  </body>
+</html>

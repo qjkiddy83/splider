@@ -4,12 +4,19 @@ var book = require('../models/book');
 var catalog = require('../models/catalog');
 var article = require('../models/article');
 var download = require('../models/download');
+var dbbooks = require('../models/dbbooks');
 var path = require('path');
+var db = require('../models/db');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
   book(function (data) {
     res.render('index',{ books: data })
+  });
+});
+router.get('/dbbooks', function (req, res, next) {
+  dbbooks({}).then(function (data) {
+    res.render('dbbooks',{books:data})
   });
 });
 router.get('/book', function (req, res, next) {
@@ -25,8 +32,10 @@ router.get('/book/article', function (req, res, next) {
 });
 
 router.get('/book/download', function (req, res, next) {
-  download(req.query.path,req.query.type).then(function(data){
+  download(req.query.path,req.query.name).then(function(data){
     res.download(data,`${req.query.name}.txt`);
+  }).catch(function(err){
+    console.error(err)
   })
 });
 
